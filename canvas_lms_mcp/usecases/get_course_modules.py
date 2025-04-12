@@ -5,9 +5,8 @@ from canvas_lms_mcp.schema import Module
 from canvas_lms_mcp.tools import tool
 
 
-@tool
+@tool()
 async def get_course_modules(
-    client: CanvasClient,
     course_id: int,
     include: Optional[List[str]] = None,
 ) -> List[Module]:
@@ -15,13 +14,13 @@ async def get_course_modules(
     Get modules for a course.
 
     Args:
-        client: Canvas API client
         course_id: Course ID
         include: Optional list of additional data to include
 
     Returns:
         List of Module objects
     """
+    client = CanvasClient.get_instance()
     params = {}
     if include:
         params["include[]"] = include

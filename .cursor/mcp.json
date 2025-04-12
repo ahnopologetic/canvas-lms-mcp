@@ -1,0 +1,7 @@
+{
+    "mcpServers": {
+        "canvas_lms_mcp": {
+            "url": "http://localhost:5173/sse"
+        }
+    }
+}

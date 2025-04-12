@@ -5,9 +5,8 @@ from canvas_lms_mcp.schema import PaginatedResponse, Quiz
 from canvas_lms_mcp.tools import tool
 
 
-@tool
+@tool()
 async def list_quizzes(
-    client: CanvasClient,
     course_id: int,
     include: Optional[List[str]] = None,
 ) -> PaginatedResponse:
@@ -15,13 +14,13 @@ async def list_quizzes(
     List quizzes for a course.
 
     Args:
-        client: Canvas API client
         course_id: Course ID
         include: Optional list of additional data to include
 
     Returns:
         PaginatedResponse containing quizzes
     """
+    client = CanvasClient.get_instance()
     params = {}
     if include:
         params["include[]"] = include

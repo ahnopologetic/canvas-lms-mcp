@@ -4,18 +4,35 @@ import httpx
 
 
 class CanvasClient:
+    _instance = None
+    _initialized = False
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(CanvasClient, cls).__new__(cls)
+        return cls._instance
+
     def __init__(
-        self, api_token: str, base_url: str = "https://canvas.instructure.com"
+        self, api_token: str = None, base_url: str = "https://canvas.instructure.com"
     ):
-        self.api_token = api_token
-        self.base_url = base_url
-        self.client = httpx.Client(
-            base_url=base_url,
-            headers={
-                "Authorization": f"Bearer {api_token}",
-                "Content-Type": "application/json",
-            },
-        )
+        # Only initialize once
+        if not self._initialized and api_token is not None:
+            self.api_token = api_token
+            self.base_url = base_url
+            self.client = httpx.Client(
+                base_url=base_url,
+                headers={
+                    "Authorization": f"Bearer {api_token}",
+                    "Content-Type": "application/json",
+                },
+            )
+            self._initialized = True
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            raise RuntimeError("CanvasClient has not been initialized. Call CanvasClient(api_token) first.")
+        return cls._instance
 
     async def get(
         self, endpoint: str, params: Optional[Dict[str, Any]] = None

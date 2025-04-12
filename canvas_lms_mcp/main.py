@@ -1,6 +1,7 @@
 from mcp.server.fastmcp import FastMCP
 
 from canvas_lms_mcp.client import CanvasClient
+from canvas_lms_mcp.tools import get_schema
 from canvas_lms_mcp.usecases import TOOLS_DEFINITION
 
 
@@ -12,7 +13,8 @@ class CanvasLMSMCP:
         base_url: str = "https://canvas.instructure.com",
     ):
         self.mcp_port = mcp_port
-        self.canvas_client = CanvasClient(api_token, base_url)
+        # Initialize the singleton client
+        CanvasClient(api_token, base_url)
         self._setup_server()
 
     def _setup_server(self):
@@ -23,7 +25,7 @@ class CanvasLMSMCP:
         self.__setup_tools()
 
     def _connect_to_canvas(self):
-        pass
+        ...
 
     def __setup_tools(self):
         for tool_schema in TOOLS_DEFINITION:

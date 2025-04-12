@@ -5,9 +5,8 @@ from canvas_lms_mcp.schema import Assignment, PaginatedResponse
 from canvas_lms_mcp.tools import tool
 
 
-@tool
+@tool()
 async def list_assignments(
-    client: CanvasClient,
     course_id: int,
     include: Optional[List[str]] = None,
 ) -> PaginatedResponse:
@@ -15,13 +14,13 @@ async def list_assignments(
     List assignments for a course.
 
     Args:
-        client: Canvas API client
         course_id: Course ID
         include: Optional list of additional data to include (e.g., ["submission"])
 
     Returns:
         PaginatedResponse containing assignments
     """
+    client = CanvasClient.get_instance()
     params = {}
     if include:
         params["include[]"] = include

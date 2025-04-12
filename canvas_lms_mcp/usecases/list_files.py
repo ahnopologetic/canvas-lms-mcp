@@ -5,9 +5,8 @@ from canvas_lms_mcp.schema import File, PaginatedResponse
 from canvas_lms_mcp.tools import tool
 
 
-@tool
+@tool()
 async def list_files(
-    client: CanvasClient,
     course_id: Optional[int] = None,
     folder_id: Optional[int] = None,
     include: Optional[List[str]] = None,
@@ -16,7 +15,6 @@ async def list_files(
     List files for a course or folder.
 
     Args:
-        client: Canvas API client
         course_id: Optional Course ID
         folder_id: Optional Folder ID
         include: Optional list of additional data to include
@@ -24,6 +22,7 @@ async def list_files(
     Returns:
         PaginatedResponse containing files
     """
+    client = CanvasClient.get_instance()
     params = {}
     if include:
         params["include[]"] = include

@@ -3,9 +3,8 @@ from canvas_lms_mcp.schema import Quiz
 from canvas_lms_mcp.tools import tool
 
 
-@tool
+@tool()
 async def get_quiz(
-    client: CanvasClient,
     course_id: int,
     quiz_id: int,
 ) -> Quiz:
@@ -13,12 +12,12 @@ async def get_quiz(
     Get a single quiz by ID.
 
     Args:
-        client: Canvas API client
         course_id: Course ID
         quiz_id: Quiz ID
 
     Returns:
         Quiz object
     """
+    client = CanvasClient.get_instance()
     response = await client.get(f"/api/v1/courses/{course_id}/quizzes/{quiz_id}")
     return Quiz(**response)

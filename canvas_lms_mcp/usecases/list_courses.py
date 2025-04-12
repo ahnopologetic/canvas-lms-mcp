@@ -5,21 +5,20 @@ from canvas_lms_mcp.schema import Course, PaginatedResponse
 from canvas_lms_mcp.tools import tool
 
 
-@tool
+@tool()
 async def list_courses(
-    client: CanvasClient,
     include: Optional[List[str]] = None,
 ) -> PaginatedResponse:
     """
     List courses for the authenticated user.
 
     Args:
-        client: Canvas API client
         include: Optional list of additional data to include
 
     Returns:
         PaginatedResponse containing courses
     """
+    client = CanvasClient.get_instance()
     params = {}
     if include:
         params["include[]"] = include
