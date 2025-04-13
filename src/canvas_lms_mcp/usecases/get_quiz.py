@@ -1,9 +1,9 @@
 from canvas_lms_mcp.client import CanvasClient
+from canvas_lms_mcp.main import mcp
 from canvas_lms_mcp.schema import Quiz
-from canvas_lms_mcp.tools import tool
 
 
-@tool()
+@mcp.tool()
 async def get_quiz(
     course_id: int,
     quiz_id: int,

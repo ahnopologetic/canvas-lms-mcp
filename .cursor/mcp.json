@@ -1,7 +1,16 @@
 {
     "mcpServers": {
-        "canvas_lms_mcp": {
-            "url": "http://localhost:5173/sse"
+        "canvas": {
+            "command": "uv",
+            "args": [
+                "run",
+                "python3",
+                "-m",
+                "src.canvas_lms_mcp.main"
+            ],
+            "env": {
+                "PYTHONPATH": "/Users/taeahn/devs/personal/canvas-lms-mcp"
+            }
         }
     }
 }

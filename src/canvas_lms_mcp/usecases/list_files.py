@@ -1,11 +1,11 @@
 from typing import List, Optional
 
 from canvas_lms_mcp.client import CanvasClient
+from canvas_lms_mcp.main import mcp
 from canvas_lms_mcp.schema import File, PaginatedResponse
-from canvas_lms_mcp.tools import tool
 
 
-@tool()
+@mcp.tool()
 async def list_files(
     course_id: Optional[int] = None,
     folder_id: Optional[int] = None,

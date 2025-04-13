@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Generic, List, Optional, TypeVar
 
 from pydantic import BaseModel
 
@@ -36,6 +36,7 @@ class Course(BaseModel):
     name: str
     course_code: Optional[str] = None
     syllabus_body: Optional[str] = None
+    enrollment_term_id: Optional[int] = None
     html_url: Optional[str] = None
 
 
@@ -55,7 +56,11 @@ class File(BaseModel):
 
 
 # Response models
-class PaginatedResponse(BaseModel):
-    items: List[dict]
+
+T = TypeVar("T")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    items: List[T]
     next_page: Optional[str] = None
     previous_page: Optional[str] = None

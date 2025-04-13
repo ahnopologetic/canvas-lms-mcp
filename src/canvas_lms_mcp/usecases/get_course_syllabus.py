@@ -1,8 +1,8 @@
 from canvas_lms_mcp.client import CanvasClient
-from canvas_lms_mcp.tools import tool
+from canvas_lms_mcp.main import mcp
 
 
-@tool()
+@mcp.tool()
 async def get_course_syllabus(
     course_id: int,
 ) -> str:

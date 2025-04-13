@@ -19,7 +19,7 @@ class CanvasClient:
         if not self._initialized and api_token is not None:
             self.api_token = api_token
             self.base_url = base_url
-            self.client = httpx.Client(
+            self.client = httpx.AsyncClient(
                 base_url=base_url,
                 headers={
                     "Authorization": f"Bearer {api_token}",
@@ -31,7 +31,9 @@ class CanvasClient:
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
-            raise RuntimeError("CanvasClient has not been initialized. Call CanvasClient(api_token) first.")
+            raise RuntimeError(
+                "CanvasClient has not been initialized. Call CanvasClient(api_token) first."
+            )
         return cls._instance
 
     async def get(
