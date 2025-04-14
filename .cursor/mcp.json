@@ -3,14 +3,22 @@
         "canvas": {
             "command": "uv",
             "args": [
+                "--directory",
+                "$PROJECT_ROOT",
                 "run",
-                "python3",
-                "-m",
-                "src.canvas_lms_mcp.main"
+                "src/canvas_lms_mcp/main.py"
             ],
             "env": {
-                "PYTHONPATH": "/Users/taeahn/devs/personal/canvas-lms-mcp"
+                "CANVAS_API_TOKEN": "$CANVAS_API_TOKEN",
+                "CANVAS_BASE_URL": "$CANVAS_BASE_URL"
             }
+        },
+        "time": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-time",
+                "--local-timezone=America/New_York"
+            ]
         }
     }
 }
