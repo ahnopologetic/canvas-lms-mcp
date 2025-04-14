@@ -1,8 +1,9 @@
 import logging
 import os
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from fastmcp import FastMCP
+from fastmcp.prompts.prompt import AssistantMessage, UserMessage
 
 from canvas_lms_mcp.client import CanvasClient
 from canvas_lms_mcp.schema import (
@@ -21,6 +22,24 @@ CANVAS_BASE_URL = os.getenv("CANVAS_BASE_URL")
 
 canvas_client = CanvasClient(api_token=CANVAS_API_TOKEN, base_url=CANVAS_BASE_URL)
 mcp = FastMCP(name="canvas-lms-mcp")
+
+
+@mcp.prompt()
+def upcoming_works(assignments: list[str], quizzes: list[str]):
+    return [
+        UserMessage(
+            content="I need to know what I have due soon",
+            role="user",
+        ),
+        AssistantMessage(
+            content="Here are the assignments and quizzes that are due soon",
+            role="assistant",
+        ),
+        AssistantMessage(
+            content=f"Assignments: {assignments}\nQuizzes: {quizzes}",
+            role="assistant",
+        ),
+    ]
 
 
 # TODO: remove these tools from main.py and move to usecases folder
@@ -135,41 +154,45 @@ async def get_quiz(
 @mcp.tool()
 async def list_assignments(
     course_id: int,
-    include: Optional[List[str]] = None,
+    bucket: Literal[
+        "past", "overdue", "undated", "ungraded", "unsubmitted", "upcoming", "future"
+    ],
+    order_by: Literal["due_at", "position", "name"],
 ) -> PaginatedResponse:
     """
     List assignments for a course.
 
     Args:
         course_id: Course ID
-        include: Optional list of additional data to include (e.g., ["submission"])
+        bucket: Bucket to filter assignments by (past, overdue, undated, ungraded, unsubmitted, upcoming, future)
+        order_by: Field to order assignments by (due_at, position, name)
 
     Returns:
         PaginatedResponse containing assignments
     """
     client = CanvasClient.get_instance()
     params = {}
-    if include:
-        params["include[]"] = include
+    if bucket:
+        params["bucket"] = bucket
+    if order_by:
+        params["order_by"] = order_by
 
     response = await client.get(
         f"/api/v1/courses/{course_id}/assignments", params=params
     )
 
-    items = [Assignment(**item) for item in response.get("items", [])]
+    items = [Assignment.model_validate(item) for item in response]
     return PaginatedResponse(
         items=items,
-        next_page=response.get("next_page"),
-        previous_page=response.get("previous_page"),
+        # next_page=response.get("next_page"),
+        # previous_page=response.get("previous_page"),
     )
 
 
 @mcp.tool()
-async def list_courses(
-    include: Optional[List[str]] = None,
-) -> PaginatedResponse:
+async def list_courses() -> PaginatedResponse:
     """
-    List courses from the Canvas LMS for the authenticated user.
+    List courses that the user is actively enrolled in.
 
     Args:
         include: Optional list of additional data to include
@@ -180,9 +203,6 @@ async def list_courses(
     client = CanvasClient.get_instance()
 
     params = {}
-    if include:
-        params["include[]"] = include
-
     params["enrollment_type"] = "student"
     params["enrollment_state"] = "active"
 
@@ -226,11 +246,11 @@ async def list_files(
 
     response = await client.get(endpoint, params=params)
 
-    items = [File(**item) for item in response.get("items", [])]
+    items = [File.model_validate(item) for item in response]
     return PaginatedResponse(
         items=items,
-        next_page=response.get("next_page"),
-        previous_page=response.get("previous_page"),
+        # next_page=response.get("next_page"),
+        # previous_page=response.get("previous_page"),
     )
 
 
@@ -262,11 +282,11 @@ async def list_planner_items(
 
     response = await client.get("/api/v1/planner/items", params=params)
 
-    items = [PlannerItem(**item) for item in response.get("items", [])]
+    items = [PlannerItem.model_validate(item) for item in response]
     return PaginatedResponse(
         items=items,
-        next_page=response.get("next_page"),
-        previous_page=response.get("previous_page"),
+        # next_page=response.get("next_page"),
+        # previous_page=response.get("previous_page"),
     )
 
 
@@ -292,11 +312,11 @@ async def list_quizzes(
 
     response = await client.get(f"/api/v1/courses/{course_id}/quizzes", params=params)
 
-    items = [Quiz(**item) for item in response.get("items", [])]
+    items = [Quiz.model_validate(item) for item in response]
     return PaginatedResponse(
         items=items,
-        next_page=response.get("next_page"),
-        previous_page=response.get("previous_page"),
+        # next_page=response.get("next_page"),
+        # previous_page=response.get("previous_page"),
     )
 
 
