@@ -58,7 +58,7 @@ jobs:
       - name: Install build dependencies
         run: |
           uv python install
-          uv pip install build twine
+          uv pip install build twine --system
 
       - name: Build package
         run: |
