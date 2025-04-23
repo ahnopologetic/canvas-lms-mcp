@@ -3,7 +3,19 @@ name = "canvas-lms-mcp"
 version = "0.1.0"
 description = "Minimal Canvas LMS MCP server for easy access to education"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Humphrey Ahn", email = "stahn1995@gmail.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Education",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
 dependencies = [
     "fastapi>=0.68.0",
     "uvicorn>=0.15.0",
@@ -12,12 +24,30 @@ dependencies = [
     "fastmcp>=2.1.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.18.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.0.40",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ahnopologetic/canvas-lms-mcp"
+"Bug Tracker" = "https://github.com/ahnopologetic/canvas-lms-mcp/issues"
+"Documentation" = "https://github.com/ahnopologetic/canvas-lms-mcp#readme"
+
 [project.scripts]
 canvas-lms-mcp = "canvas_lms_mcp.main:mcp.run"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/canvas_lms_mcp"]
 
 [tool.ruff]
 line-length = 88
