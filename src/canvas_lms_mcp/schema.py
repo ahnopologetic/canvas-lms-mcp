@@ -4,13 +4,22 @@ from typing import Generic, List, Optional, TypeVar
 from pydantic import BaseModel
 
 
-class PlannerItem(BaseModel):
+class Plannable(BaseModel):
     id: int
     title: str
+    read_status: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class PlannerItem(BaseModel):
     due_at: Optional[datetime] = None
     course_id: Optional[int] = None
+    context_type: str
+    context_name: Optional[str] = None
+    plannable_type: str
+    plannable: Plannable
     html_url: Optional[str] = None
-    type: str  # assignment, quiz, etc.
 
 
 class Assignment(BaseModel):
@@ -64,3 +73,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     items: List[T]
     next_page: Optional[str] = None
     previous_page: Optional[str] = None
+    page: Optional[int] = None
+    total_pages: Optional[int] = None
+    total_items: Optional[int] = None
+    items_per_page: Optional[int] = None

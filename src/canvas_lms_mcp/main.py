@@ -15,6 +15,7 @@ from canvas_lms_mcp.schema import (
     PlannerItem,
     Quiz,
 )
+from canvas_lms_mcp.utils import paginate_response
 
 logger = logging.getLogger(__name__)
 CANVAS_API_TOKEN = os.getenv("CANVAS_API_TOKEN")
@@ -24,7 +25,7 @@ canvas_client = CanvasClient(api_token=CANVAS_API_TOKEN, base_url=CANVAS_BASE_UR
 mcp = FastMCP(name="canvas-lms-mcp")
 
 
-@mcp.prompt()
+@mcp.prompt("upcoming_works")
 def upcoming_works(assignments: list[str], quizzes: list[str]):
     return [
         UserMessage(
@@ -158,6 +159,8 @@ async def list_assignments(
         "past", "overdue", "undated", "ungraded", "unsubmitted", "upcoming", "future"
     ],
     order_by: Literal["due_at", "position", "name"],
+    page: int = 1,
+    items_per_page: int = 10,
 ) -> PaginatedResponse:
     """
     List assignments for a course.
@@ -166,6 +169,8 @@ async def list_assignments(
         course_id: Course ID
         bucket: Bucket to filter assignments by (past, overdue, undated, ungraded, unsubmitted, upcoming, future)
         order_by: Field to order assignments by (due_at, position, name)
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
 
     Returns:
         PaginatedResponse containing assignments
@@ -182,20 +187,20 @@ async def list_assignments(
     )
 
     items = [Assignment.model_validate(item) for item in response]
-    return PaginatedResponse(
-        items=items,
-        # next_page=response.get("next_page"),
-        # previous_page=response.get("previous_page"),
-    )
+    return await paginate_response(items, page, items_per_page)
 
 
 @mcp.tool()
-async def list_courses() -> PaginatedResponse:
+async def list_courses(
+    page: int = 1,
+    items_per_page: int = 10,
+) -> PaginatedResponse:
     """
     List courses that the user is actively enrolled in.
 
     Args:
-        include: Optional list of additional data to include
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
 
     Returns:
         PaginatedResponse containing courses
@@ -210,9 +215,7 @@ async def list_courses() -> PaginatedResponse:
 
     items = [Course.model_validate(item) for item in response]
 
-    return PaginatedResponse(
-        items=items,
-    )
+    return await paginate_response(items, page, items_per_page)
 
 
 @mcp.tool()
@@ -220,7 +223,9 @@ async def list_files(
     course_id: Optional[int] = None,
     folder_id: Optional[int] = None,
     include: Optional[List[str]] = None,
-) -> PaginatedResponse:
+    page: int = 1,
+    items_per_page: int = 10,
+) -> PaginatedResponse[File]:
     """
     List files for a course or folder.
 
@@ -228,9 +233,11 @@ async def list_files(
         course_id: Optional Course ID
         folder_id: Optional Folder ID
         include: Optional list of additional data to include
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
 
     Returns:
-        PaginatedResponse containing files
+        PaginatedResponse[File]
     """
     client = CanvasClient.get_instance()
     params = {}
@@ -247,53 +254,50 @@ async def list_files(
     response = await client.get(endpoint, params=params)
 
     items = [File.model_validate(item) for item in response]
-    return PaginatedResponse(
-        items=items,
-        # next_page=response.get("next_page"),
-        # previous_page=response.get("previous_page"),
-    )
+    return await paginate_response(items, page, items_per_page)
 
 
 @mcp.tool()
 async def list_planner_items(
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    context_codes: Optional[List[str]] = None,
-) -> PaginatedResponse:
+    start_date: str,
+    end_date: str,
+    context_codes: List[str] = None,
+    page: int = 1,
+    items_per_page: int = 10,
+) -> PaginatedResponse[PlannerItem]:
     """
     List planner items for the authenticated user.
 
     Args:
-        start_date: Optional start date in ISO 8601 format
-        end_date: Optional end date in ISO 8601 format
-        context_codes: Optional list of context codes (e.g., ["course_123"])
+        start_date: start date in ISO 8601 format
+        end_date: end date in ISO 8601 format
+        context_codes: list of context codes (e.g., ["course_123"])
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
 
     Returns:
-        PaginatedResponse containing planner items
+        PaginatedResponse[PlannerItem]
     """
     client = CanvasClient.get_instance()
     params = {}
-    if start_date:
-        params["start_date"] = start_date
-    if end_date:
-        params["end_date"] = end_date
+    params["start_date"] = start_date
+    params["end_date"] = end_date
+
     if context_codes:
         params["context_codes[]"] = context_codes
 
     response = await client.get("/api/v1/planner/items", params=params)
 
     items = [PlannerItem.model_validate(item) for item in response]
-    return PaginatedResponse(
-        items=items,
-        # next_page=response.get("next_page"),
-        # previous_page=response.get("previous_page"),
-    )
+    return await paginate_response(items, page, items_per_page)
 
 
 @mcp.tool()
 async def list_quizzes(
     course_id: int,
     include: Optional[List[str]] = None,
+    page: int = 1,
+    items_per_page: int = 10,
 ) -> PaginatedResponse:
     """
     List quizzes for a course.
@@ -301,6 +305,8 @@ async def list_quizzes(
     Args:
         course_id: Course ID
         include: Optional list of additional data to include
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
 
     Returns:
         PaginatedResponse containing quizzes
@@ -313,11 +319,7 @@ async def list_quizzes(
     response = await client.get(f"/api/v1/courses/{course_id}/quizzes", params=params)
 
     items = [Quiz.model_validate(item) for item in response]
-    return PaginatedResponse(
-        items=items,
-        # next_page=response.get("next_page"),
-        # previous_page=response.get("previous_page"),
-    )
+    return await paginate_response(items, page, items_per_page)
 
 
 if __name__ == "__main__":
