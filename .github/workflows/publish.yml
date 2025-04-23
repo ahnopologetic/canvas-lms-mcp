@@ -30,7 +30,7 @@ jobs:
           echo "Tag version: $TAG_VERSION"
           
           # Extract version from pyproject.toml
-          PYPROJECT_VERSION=$(python -c "import tomli; print(tomli.loads(open('pyproject.toml', 'rb').read())['project']['version'])")
+          PYPROJECT_VERSION=$(python -c "import tomli; print(tomli.loads(open('pyproject.toml', 'r').read())['project']['version'])")
           echo "pyproject.toml version: $PYPROJECT_VERSION"
           
           # Verify versions match
@@ -48,11 +48,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: "pyproject.toml"
-
       - name: Install uv with caching
         uses: astral-sh/setup-uv@v5
         with:
@@ -62,6 +57,7 @@ jobs:
 
       - name: Install build dependencies
         run: |
+          uv python install
           uv pip install build twine
 
       - name: Build package
