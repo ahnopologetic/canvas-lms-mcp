@@ -55,14 +55,9 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"
 
-      - name: Install build dependencies
-        run: |
-          uv python install
-          uv pip install build twine --system
-
       - name: Build package
         run: |
-          uv run python -m build
+          uv build
 
       - name: Check package
         run: |
