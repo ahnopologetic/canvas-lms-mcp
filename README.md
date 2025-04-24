@@ -196,12 +196,9 @@ Cursor is an AI-powered IDE that can interact with the Canvas LMS MCP server to 
    {
        "mcpServers": {
            "canvas": {
-               "command": "uv",
+               "command": "uvx",
                "args": [
-                   "--directory",
-                   "/path/to/your/canvas-lms-mcp",
-                   "run",
-                   "src/canvas_lms_mcp/main.py"
+                    "canvas-lms-mcp"
                ],
                "env": {
                    "CANVAS_API_TOKEN": "your_canvas_api_token",
@@ -213,7 +210,6 @@ Cursor is an AI-powered IDE that can interact with the Canvas LMS MCP server to 
    ```
 
    Replace:
-   - `/path/to/your/canvas-lms-mcp` with the absolute path to your project
    - `your_canvas_api_token` with your actual Canvas API token
    - `your-institution.instructure.com` with your Canvas institution URL
 
