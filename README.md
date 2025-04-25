@@ -1,5 +1,6 @@
 # Canvas LMS MCP Server
 
+[![smithery badge](https://smithery.ai/badge/@ahnopologetic/canvas-lms-mcp)](https://smithery.ai/server/@ahnopologetic/canvas-lms-mcp)
 A minimal Canvas LMS MCP (Machine Conversation Protocol) server for easy access to education data through your Canvas LMS instance. This server provides a bridge between AI systems (like Cursor) and Canvas Learning Management System.
 
 ## Features
@@ -13,6 +14,14 @@ A minimal Canvas LMS MCP (Machine Conversation Protocol) server for easy access 
 - List files
 
 ## Installation
+
+### Installing via Smithery
+
+To install Canvas LMS Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@ahnopologetic/canvas-lms-mcp):
+
+```bash
+npx -y @smithery/cli install @ahnopologetic/canvas-lms-mcp --client claude
+```
 
 ### Prerequisites
 
