@@ -11,6 +11,7 @@ from canvas_lms_mcp.schema import (
     Course,
     File,
     Module,
+    ModuleItem,
     PaginatedResponse,
     PlannerItem,
     Quiz,
@@ -70,6 +71,7 @@ async def get_assignment(
 async def get_course_modules(
     course_id: int,
     include: Optional[List[str]] = None,
+    per_page: int = 100,
 ) -> List[Module]:
     """
     Get modules for a course.
@@ -77,7 +79,7 @@ async def get_course_modules(
     Args:
         course_id: Course ID
         include: Optional list of additional data to include
-
+        per_page: Number of items per page
     Returns:
         List of Module objects
     """
@@ -85,6 +87,8 @@ async def get_course_modules(
     params = {}
     if include:
         params["include[]"] = include
+    if per_page:
+        params["per_page"] = per_page
 
     response = await client.get(f"/api/v1/courses/{course_id}/modules", params=params)
     return [Module(**module) for module in response]
@@ -320,6 +324,45 @@ async def list_quizzes(
 
     items = [Quiz.model_validate(item) for item in response]
     return await paginate_response(items, page, items_per_page)
+
+
+@mcp.tool()
+async def get_module_items(
+    course_id: int,
+    module_id: int,
+) -> PaginatedResponse[ModuleItem]:
+    """
+    Get items for a module.
+
+    Args:
+        course_id: Course ID
+        module_id: Module ID
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get(
+        f"/api/v1/courses/{course_id}/modules/{module_id}/items"
+    )
+    return [ModuleItem.model_validate(item) for item in response]
+
+
+@mcp.tool()
+async def get_file(
+    course_id: int,
+    file_id: int,
+) -> File:
+    """
+    Get a file by ID.
+
+    Args:
+        course_id: Course ID
+        file_id: File ID
+
+    Returns:
+        File object
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get(f"/api/v1/courses/{course_id}/files/{file_id}")
+    return File.model_validate(response)
 
 
 if __name__ == "__main__":

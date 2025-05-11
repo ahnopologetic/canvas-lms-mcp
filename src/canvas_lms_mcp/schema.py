@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Generic, List, Optional, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Plannable(BaseModel):
@@ -54,14 +54,55 @@ class Module(BaseModel):
     name: str
     position: Optional[int] = None
     items: Optional[List[dict]] = None
+    state: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    items_url: Optional[str] = None
+
+
+class ModuleItem(BaseModel):
+    id: int
+    title: str
+    position: Optional[int] = None
+    indent: Optional[int] = None
+    quiz_lti: Optional[bool] = None
+    type: str
+    module_id: Optional[int] = None
+    html_url: Optional[str] = None
+    content_id: Optional[int] = None
+    url: Optional[str] = None
 
 
 class File(BaseModel):
     id: int
-    name: str
-    url: Optional[str] = None
+    name: Optional[str] = None
+    display_name: Optional[str] = None
+    filename: Optional[str] = None
+    folder_id: Optional[int] = None
+    url: Optional[str] = Field(
+        default=None,
+        alias="url",
+        description="Downloadable URL for the file",
+    )
     size: Optional[int] = None
     content_type: Optional[str] = None
+    mime_class: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    modified_at: Optional[datetime] = None
+    unlock_at: Optional[datetime] = None
+    lock_at: Optional[datetime] = None
+    hidden: Optional[bool] = None
+    locked: Optional[bool] = None
+    hidden_for_user: Optional[bool] = None
+    locked_for_user: Optional[bool] = None
+    thumbnail_url: Optional[str] = None
+    uuid: Optional[str] = None
+    upload_status: Optional[str] = None
+    visibility_level: Optional[str] = None
+    category: Optional[str] = None
+    media_entry_id: Optional[str] = None
+    canvadoc_session_url: Optional[str] = None
+    crocodoc_session_url: Optional[str] = None
 
 
 # Response models
