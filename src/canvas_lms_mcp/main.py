@@ -3,7 +3,6 @@ import os
 from typing import List, Literal, Optional
 
 from fastmcp import FastMCP
-from fastmcp.prompts.prompt import AssistantMessage, UserMessage
 
 from canvas_lms_mcp.client import CanvasClient
 from canvas_lms_mcp.schema import (
@@ -24,24 +23,6 @@ CANVAS_BASE_URL = os.getenv("CANVAS_BASE_URL")
 
 canvas_client = CanvasClient(api_token=CANVAS_API_TOKEN, base_url=CANVAS_BASE_URL)
 mcp = FastMCP(name="canvas-lms-mcp")
-
-
-@mcp.prompt("upcoming_works")
-def upcoming_works(assignments: list[str], quizzes: list[str]):
-    return [
-        UserMessage(
-            content="I need to know what I have due soon",
-            role="user",
-        ),
-        AssistantMessage(
-            content="Here are the assignments and quizzes that are due soon",
-            role="assistant",
-        ),
-        AssistantMessage(
-            content=f"Assignments: {assignments}\nQuizzes: {quizzes}",
-            role="assistant",
-        ),
-    ]
 
 
 # TODO: remove these tools from main.py and move to usecases folder
