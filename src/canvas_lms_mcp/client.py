@@ -24,6 +24,7 @@ class CanvasClient:
                 headers={
                     "Authorization": f"Bearer {api_token}",
                     "Content-Type": "application/json",
+                    "User-Agent": "canvas-lms-mcp/0.1.3",
                 },
             )
             self._initialized = True

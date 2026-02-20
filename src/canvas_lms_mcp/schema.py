@@ -72,6 +72,95 @@ class ModuleItem(BaseModel):
     url: Optional[str] = None
 
 
+class Page(BaseModel):
+    title: Optional[str] = None
+    body: Optional[str] = None
+    url: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    editing_roles: Optional[str] = None
+    published: Optional[bool] = None
+    front_page: Optional[bool] = None
+    html_url: Optional[str] = None
+
+
+class Submission(BaseModel):
+    id: int
+    assignment_id: Optional[int] = None
+    assignment: Optional[dict] = None
+    user_id: Optional[int] = None
+    grade: Optional[str] = None
+    score: Optional[float] = None
+    submitted_at: Optional[datetime] = None
+    graded_at: Optional[datetime] = None
+    workflow_state: Optional[str] = None
+    late: Optional[bool] = None
+    missing: Optional[bool] = None
+    excused: Optional[bool] = None
+    submission_comments: Optional[list] = None
+    html_url: Optional[str] = None
+
+
+class Announcement(BaseModel):
+    id: int
+    title: str
+    message: Optional[str] = None
+    posted_at: Optional[datetime] = None
+    author: Optional[dict] = None
+    html_url: Optional[str] = None
+    read_state: Optional[str] = None
+
+
+class Discussion(BaseModel):
+    id: int
+    title: str
+    message: Optional[str] = None
+    posted_at: Optional[datetime] = None
+    author: Optional[dict] = None
+    html_url: Optional[str] = None
+    read_state: Optional[str] = None
+    discussion_type: Optional[str] = None
+    published: Optional[bool] = None
+
+
+class CalendarEvent(BaseModel):
+    id: int
+    title: Optional[str] = None
+    description: Optional[str] = None
+    start_at: Optional[datetime] = None
+    end_at: Optional[datetime] = None
+    location_name: Optional[str] = None
+    context_code: Optional[str] = None
+    workflow_state: Optional[str] = None
+    html_url: Optional[str] = None
+
+
+class Enrollment(BaseModel):
+    id: int
+    course_id: Optional[int] = None
+    type: Optional[str] = None
+    enrollment_state: Optional[str] = None
+    grades: Optional[dict] = None
+    html_url: Optional[str] = None
+
+
+class AssignmentGroup(BaseModel):
+    id: int
+    name: Optional[str] = None
+    position: Optional[int] = None
+    group_weight: Optional[float] = None
+    rules: Optional[dict] = None
+
+
+class Tab(BaseModel):
+    id: str
+    label: Optional[str] = None
+    type: Optional[str] = None
+    html_url: Optional[str] = None
+    position: Optional[int] = None
+    visibility: Optional[str] = None
+
+
 class File(BaseModel):
     id: int
     name: Optional[str] = None
