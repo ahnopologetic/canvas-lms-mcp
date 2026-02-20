@@ -294,75 +294,75 @@ Parameters:
 #### `list_favorites`
 List the current user's favorite courses.
 
-## Integration with Cursor
+## Integration
 
-Cursor is an AI-powered IDE that can interact with the Canvas LMS MCP server to provide education data directly within your development environment.
+This MCP server works with any client that supports the [Model Context Protocol](https://modelcontextprotocol.io/), including Claude Desktop, Claude Code, Cursor, Windsurf, and others.
 
-### Setting Up Cursor Integration
-
-1. Install the Cursor IDE from [https://cursor.sh/](https://cursor.sh/)
-
-2. Create a `.cursor/mcp.json` file in your project directory with the following content:
-   ```json
-   {
-       "mcpServers": {
-           "canvas": {
-               "command": "uvx",
-               "args": [
-                    "canvas-lms-mcp"
-               ],
-               "env": {
-                   "CANVAS_API_TOKEN": "your_canvas_api_token",
-                   "CANVAS_BASE_URL": "https://your-institution.instructure.com"
-               }
-           }
-       }
-   }
-   ```
-
-   Replace:
-   - `your_canvas_api_token` with your actual Canvas API token
-   - `your-institution.instructure.com` with your Canvas institution URL
-
-3. Restart Cursor for the changes to take effect.
-
-### Cursor Time Integration (Optional)
-
-You can also integrate a time server for timezone-related queries by adding a "time" server to your mcp.json:
+The MCP configuration is the same across all clients — only the config file location differs:
 
 ```json
-"time": {
-    "command": "uvx",
-    "args": [
-        "mcp-server-time",
-        "--local-timezone=America/New_York"
-    ]
+{
+    "mcpServers": {
+        "canvas": {
+            "command": "uvx",
+            "args": ["canvas-lms-mcp"],
+            "env": {
+                "CANVAS_API_TOKEN": "your_canvas_api_token",
+                "CANVAS_BASE_URL": "https://your-institution.instructure.com"
+            }
+        }
+    }
 }
 ```
 
-This allows you to use time-related functions with your Canvas data.
+Replace `your_canvas_api_token` with your Canvas API token (found in Canvas → Account → Settings → New Access Token) and `your-institution.instructure.com` with your institution's Canvas URL.
+
+### Claude Desktop
+
+Add to your Claude Desktop config file:
+
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Restart Claude Desktop after saving.
+
+### Claude Code
+
+Add to your project's `.mcp.json` or global `~/.claude/settings.json`:
+
+```json
+{
+    "mcpServers": {
+        "canvas": {
+            "command": "uvx",
+            "args": ["canvas-lms-mcp"],
+            "env": {
+                "CANVAS_API_TOKEN": "your_canvas_api_token",
+                "CANVAS_BASE_URL": "https://your-institution.instructure.com"
+            }
+        }
+    }
+}
+```
+
+### Cursor
+
+Add to `.cursor/mcp.json` in your project directory. Restart Cursor after saving.
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`. Restart Windsurf after saving.
 
 ### Usage Examples
 
-Once connected, you can ask Cursor AI about your Canvas data:
+Once connected, you can ask your AI assistant about your Canvas data:
 
 - "What assignments do I have due next week?"
 - "Show me the syllabus for my Biology course"
-- "List all my upcoming quizzes"
+- "What announcements were posted today?"
+- "What are my grades so far?"
 - "What's on my schedule for tomorrow?"
-
-Example conversation:
-
-```
-YOU: What assignments do I have due soon?
-
-CURSOR: I'll check your upcoming assignments.
-
-Based on your Canvas data, here are your upcoming assignments:
-- "Final Project" for CS101 due on December 10, 2023
-- "Lab Report #5" for BIOL200 due on December 7, 2023
-- "Research Paper" for ENGL301 due on December 15, 2023
-```
+- "Show me the discussion posts for my English class"
 
 ## Development
 
