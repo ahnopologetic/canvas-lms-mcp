@@ -6,14 +6,22 @@ from fastmcp import FastMCP
 
 from canvas_lms_mcp.client import CanvasClient
 from canvas_lms_mcp.schema import (
+    Announcement,
     Assignment,
+    AssignmentGroup,
+    CalendarEvent,
     Course,
+    Discussion,
+    Enrollment,
     File,
     Module,
     ModuleItem,
+    Page,
     PaginatedResponse,
     PlannerItem,
     Quiz,
+    Submission,
+    Tab,
 )
 from canvas_lms_mcp.utils import paginate_response
 
@@ -89,7 +97,9 @@ async def get_course_syllabus(
         Course syllabus as string
     """
     client = CanvasClient.get_instance()
-    response = await client.get(f"/api/v1/courses/{course_id}/syllabus")
+    response = await client.get(
+        f"/api/v1/courses/{course_id}", params={"include[]": "syllabus_body"}
+    )
     return response.get("syllabus_body", "")
 
 
@@ -144,6 +154,7 @@ async def list_assignments(
         "past", "overdue", "undated", "ungraded", "unsubmitted", "upcoming", "future"
     ],
     order_by: Literal["due_at", "position", "name"],
+    include: Optional[List[str]] = None,
     page: int = 1,
     items_per_page: int = 10,
 ) -> PaginatedResponse:
@@ -154,6 +165,7 @@ async def list_assignments(
         course_id: Course ID
         bucket: Bucket to filter assignments by (past, overdue, undated, ungraded, unsubmitted, upcoming, future)
         order_by: Field to order assignments by (due_at, position, name)
+        include: Optional list of additional data to include (e.g., ["submission"] to see grade status)
         page: Page number (1-indexed)
         items_per_page: Number of items per page
 
@@ -166,6 +178,8 @@ async def list_assignments(
         params["bucket"] = bucket
     if order_by:
         params["order_by"] = order_by
+    if include:
+        params["include[]"] = include
 
     response = await client.get(
         f"/api/v1/courses/{course_id}/assignments", params=params
@@ -311,7 +325,7 @@ async def list_quizzes(
 async def get_module_items(
     course_id: int,
     module_id: int,
-) -> PaginatedResponse[ModuleItem]:
+) -> dict:
     """
     Get items for a module.
 
@@ -323,7 +337,8 @@ async def get_module_items(
     response = await client.get(
         f"/api/v1/courses/{course_id}/modules/{module_id}/items"
     )
-    return [ModuleItem.model_validate(item) for item in response]
+    items = [ModuleItem.model_validate(item).model_dump() for item in response]
+    return {"items": items, "total": len(items)}
 
 
 @mcp.tool()
@@ -344,6 +359,230 @@ async def get_file(
     client = CanvasClient.get_instance()
     response = await client.get(f"/api/v1/courses/{course_id}/files/{file_id}")
     return File.model_validate(response)
+
+
+@mcp.tool()
+async def get_page(
+    course_id: int,
+    page_slug: str,
+) -> Page:
+    """
+    Get a single page by its URL slug.
+
+    Args:
+        course_id: Course ID
+        page_slug: Page URL slug (e.g., "kurshandbok", "examination")
+
+    Returns:
+        Page object with title, body (HTML), and metadata
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get(f"/api/v1/courses/{course_id}/pages/{page_slug}")
+    return Page.model_validate(response)
+
+
+@mcp.tool()
+async def list_submissions(
+    course_id: int,
+    include: Optional[List[str]] = None,
+    page: int = 1,
+    items_per_page: int = 10,
+) -> PaginatedResponse[Submission]:
+    """
+    List the current user's submissions for a course, including grades and feedback.
+
+    Args:
+        course_id: Course ID
+        include: Optional list of additional data (e.g., ["assignment", "submission_comments"])
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
+
+    Returns:
+        PaginatedResponse containing submissions with grades and comments
+    """
+    client = CanvasClient.get_instance()
+    params = {"student_ids[]": "self"}
+    if include:
+        params["include[]"] = include
+
+    response = await client.get(
+        f"/api/v1/courses/{course_id}/students/submissions", params=params
+    )
+
+    items = [Submission.model_validate(item) for item in response]
+    return await paginate_response(items, page, items_per_page)
+
+
+@mcp.tool()
+async def list_announcements(
+    course_ids: List[int],
+    page: int = 1,
+    items_per_page: int = 10,
+) -> PaginatedResponse[Announcement]:
+    """
+    List announcements for one or more courses.
+
+    Args:
+        course_ids: List of course IDs to fetch announcements for
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
+
+    Returns:
+        PaginatedResponse containing announcements
+    """
+    client = CanvasClient.get_instance()
+    params = {"context_codes[]": [f"course_{cid}" for cid in course_ids]}
+
+    response = await client.get("/api/v1/announcements", params=params)
+
+    items = [Announcement.model_validate(item) for item in response]
+    return await paginate_response(items, page, items_per_page)
+
+
+@mcp.tool()
+async def list_discussions(
+    course_id: int,
+    page: int = 1,
+    items_per_page: int = 10,
+) -> PaginatedResponse[Discussion]:
+    """
+    List discussion topics for a course.
+
+    Args:
+        course_id: Course ID
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
+
+    Returns:
+        PaginatedResponse containing discussion topics
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get(f"/api/v1/courses/{course_id}/discussion_topics")
+
+    items = [Discussion.model_validate(item) for item in response]
+    return await paginate_response(items, page, items_per_page)
+
+
+@mcp.tool()
+async def get_discussion_view(
+    course_id: int,
+    discussion_id: int,
+) -> dict:
+    """
+    Get the full view of a discussion topic including all replies.
+
+    Args:
+        course_id: Course ID
+        discussion_id: Discussion topic ID
+
+    Returns:
+        Full discussion view with participants and all entries
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get(
+        f"/api/v1/courses/{course_id}/discussion_topics/{discussion_id}/view"
+    )
+    return response
+
+
+@mcp.tool()
+async def list_calendar_events(
+    context_codes: List[str],
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    page: int = 1,
+    items_per_page: int = 10,
+) -> PaginatedResponse[CalendarEvent]:
+    """
+    List calendar events for courses.
+
+    Args:
+        context_codes: List of context codes (e.g., ["course_4538"])
+        start_date: Optional start date in ISO 8601 format
+        end_date: Optional end date in ISO 8601 format
+        page: Page number (1-indexed)
+        items_per_page: Number of items per page
+
+    Returns:
+        PaginatedResponse containing calendar events
+    """
+    client = CanvasClient.get_instance()
+    params = {"context_codes[]": context_codes}
+    if start_date:
+        params["start_date"] = start_date
+    if end_date:
+        params["end_date"] = end_date
+
+    response = await client.get("/api/v1/calendar_events", params=params)
+
+    items = [CalendarEvent.model_validate(item) for item in response]
+    return await paginate_response(items, page, items_per_page)
+
+
+@mcp.tool()
+async def get_enrollments() -> dict:
+    """
+    Get the current user's enrollments including grades.
+
+    Returns:
+        Dict with enrollment items including course IDs and grade data
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get("/api/v1/users/self/enrollments")
+    items = [Enrollment.model_validate(item).model_dump() for item in response]
+    return {"items": items, "total": len(items)}
+
+
+@mcp.tool()
+async def list_assignment_groups(
+    course_id: int,
+) -> dict:
+    """
+    List assignment groups for a course (shows grade weighting/categories).
+
+    Args:
+        course_id: Course ID
+
+    Returns:
+        Dict with assignment group items
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get(f"/api/v1/courses/{course_id}/assignment_groups")
+    items = [AssignmentGroup.model_validate(item).model_dump() for item in response]
+    return {"items": items, "total": len(items)}
+
+
+@mcp.tool()
+async def get_tabs(
+    course_id: int,
+) -> dict:
+    """
+    Get available tabs/navigation items for a course.
+
+    Args:
+        course_id: Course ID
+
+    Returns:
+        Dict with tab items showing available course sections
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get(f"/api/v1/courses/{course_id}/tabs")
+    items = [Tab.model_validate(item).model_dump() for item in response]
+    return {"items": items, "total": len(items)}
+
+
+@mcp.tool()
+async def list_favorites() -> dict:
+    """
+    List the current user's favorite courses.
+
+    Returns:
+        Dict with favorite course items
+    """
+    client = CanvasClient.get_instance()
+    response = await client.get("/api/v1/users/self/favorites/courses")
+    items = [Course.model_validate(item).model_dump() for item in response]
+    return {"items": items, "total": len(items)}
 
 
 if __name__ == "__main__":

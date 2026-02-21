@@ -5,13 +5,18 @@ A minimal Canvas LMS MCP (Machine Conversation Protocol) server for easy access 
 
 ## Features
 
-- List planner items (assignments, quizzes, etc.)
-- Get and list assignments
-- Get and list quizzes
-- Get and list courses
-- Get course syllabus
-- Get course modules
-- List files
+- **Courses**: List enrolled courses, get course details, syllabus, modules, and module items
+- **Assignments**: List and get assignments with optional submission status
+- **Pages**: Get course pages by URL slug
+- **Submissions**: List your own submissions with grades and feedback
+- **Announcements**: List announcements across multiple courses
+- **Discussions**: List topics and view full discussion threads
+- **Calendar**: List calendar events with date filtering
+- **Planner**: List planner items (assignments, announcements, etc.)
+- **Enrollments**: Get enrollment data with grades
+- **Quizzes**: List and get quizzes (classic quizzes only)
+- **Files**: List and get files
+- **Navigation**: Get course tabs, assignment groups, and favorite courses
 
 ## Installation
 
@@ -100,7 +105,7 @@ By default, the server runs on http://localhost:8000. You can use the FastMCP in
 
 ## Available Tools
 
-The server provides the following tools for interacting with Canvas LMS:
+The server provides 22 tools for interacting with Canvas LMS:
 
 ### Courses
 
@@ -119,7 +124,7 @@ Parameters:
 - `include` (optional): List of additional data to include
 
 #### `get_course_syllabus`
-Get a course's syllabus.
+Get a course's syllabus body as HTML.
 
 Parameters:
 - `course_id` (required): Course ID
@@ -130,6 +135,14 @@ Get modules for a course.
 Parameters:
 - `course_id` (required): Course ID
 - `include` (optional): List of additional data to include
+- `per_page` (optional, default=100): Number of items per page
+
+#### `get_module_items`
+Get items for a specific module.
+
+Parameters:
+- `course_id` (required): Course ID
+- `module_id` (required): Module ID
 
 ### Assignments
 
@@ -138,8 +151,9 @@ List assignments for a course.
 
 Parameters:
 - `course_id` (required): Course ID
-- `bucket` (required): Filter assignments by ("past", "overdue", "undated", "ungraded", "unsubmitted", "upcoming", "future")
-- `order_by` (required): Field to order assignments by ("due_at", "position", "name")
+- `bucket` (required): Filter by "past", "overdue", "undated", "ungraded", "unsubmitted", "upcoming", or "future"
+- `order_by` (required): Order by "due_at", "position", or "name"
+- `include` (optional): List of additional data to include (e.g., `["submission"]` to see grade status)
 - `page` (optional, default=1): Page number (1-indexed)
 - `items_per_page` (optional, default=10): Number of items per page
 
@@ -150,10 +164,92 @@ Parameters:
 - `course_id` (required): Course ID
 - `assignment_id` (required): Assignment ID
 
+#### `list_assignment_groups`
+List assignment groups for a course (shows grade weighting/categories).
+
+Parameters:
+- `course_id` (required): Course ID
+
+### Pages
+
+#### `get_page`
+Get a single page by its URL slug.
+
+Parameters:
+- `course_id` (required): Course ID
+- `page_slug` (required): Page URL slug (e.g., "syllabus", "course-handbook")
+
+### Submissions
+
+#### `list_submissions`
+List the current user's submissions for a course, including grades and feedback.
+
+Parameters:
+- `course_id` (required): Course ID
+- `include` (optional): List of additional data (e.g., `["assignment", "submission_comments"]`)
+- `page` (optional, default=1): Page number (1-indexed)
+- `items_per_page` (optional, default=10): Number of items per page
+
+### Announcements
+
+#### `list_announcements`
+List announcements for one or more courses.
+
+Parameters:
+- `course_ids` (required): List of course IDs
+- `page` (optional, default=1): Page number (1-indexed)
+- `items_per_page` (optional, default=10): Number of items per page
+
+### Discussions
+
+#### `list_discussions`
+List discussion topics for a course.
+
+Parameters:
+- `course_id` (required): Course ID
+- `page` (optional, default=1): Page number (1-indexed)
+- `items_per_page` (optional, default=10): Number of items per page
+
+#### `get_discussion_view`
+Get the full view of a discussion topic including all replies.
+
+Parameters:
+- `course_id` (required): Course ID
+- `discussion_id` (required): Discussion topic ID
+
+### Calendar
+
+#### `list_calendar_events`
+List calendar events for courses.
+
+Parameters:
+- `context_codes` (required): List of context codes (e.g., `["course_123"]`)
+- `start_date` (optional): Start date in ISO 8601 format
+- `end_date` (optional): End date in ISO 8601 format
+- `page` (optional, default=1): Page number (1-indexed)
+- `items_per_page` (optional, default=10): Number of items per page
+
+### Planner Items
+
+#### `list_planner_items`
+List planner items for the authenticated user.
+
+Parameters:
+- `start_date` (required): Start date in ISO 8601 format
+- `end_date` (required): End date in ISO 8601 format
+- `context_codes` (optional): List of context codes (e.g., `["course_123"]`)
+- `page` (optional, default=1): Page number (1-indexed)
+- `items_per_page` (optional, default=10): Number of items per page
+
+### Enrollments
+
+#### `get_enrollments`
+Get the current user's enrollments including grades.
+
 ### Quizzes
 
 #### `list_quizzes`
-List quizzes for a course.
+List quizzes for a course. Note: only works with Classic Quizzes, not New Quizzes (quiz_lti).
 
 Parameters:
 - `course_id` (required): Course ID
@@ -171,7 +267,7 @@ Parameters:
 ### Files
 
 #### `list_files`
-List files for a course or folder.
+List files for a course or folder. Note: may return 403 for student accounts depending on institution permissions.
 
 Parameters:
 - `course_id` (optional): Course ID
@@ -180,87 +276,93 @@ Parameters:
 - `page` (optional, default=1): Page number (1-indexed)
 - `items_per_page` (optional, default=10): Number of items per page
 
-### Planner Items
-
-#### `list_planner_items`
-List planner items for the authenticated user.
+#### `get_file`
+Get a file by ID. Works with known file IDs even when `list_files` is restricted.
 
 Parameters:
-- `start_date` (required): Start date in ISO 8601 format
-- `end_date` (required): End date in ISO 8601 format
-- `context_codes` (optional): List of context codes (e.g., ["course_123"])
-- `page` (optional, default=1): Page number (1-indexed)
-- `items_per_page` (optional, default=10): Number of items per page
+- `course_id` (required): Course ID
+- `file_id` (required): File ID
 
-## Integration with Cursor
+### Other
 
-Cursor is an AI-powered IDE that can interact with the Canvas LMS MCP server to provide education data directly within your development environment.
+#### `get_tabs`
+Get available tabs/navigation items for a course.
 
-### Setting Up Cursor Integration
+Parameters:
+- `course_id` (required): Course ID
 
-1. Install the Cursor IDE from [https://cursor.sh/](https://cursor.sh/)
+#### `list_favorites`
+List the current user's favorite courses.
 
-2. Create a `.cursor/mcp.json` file in your project directory with the following content:
-   ```json
-   {
-       "mcpServers": {
-           "canvas": {
-               "command": "uvx",
-               "args": [
-                    "canvas-lms-mcp"
-               ],
-               "env": {
-                   "CANVAS_API_TOKEN": "your_canvas_api_token",
-                   "CANVAS_BASE_URL": "https://your-institution.instructure.com"
-               }
-           }
-       }
-   }
-   ```
+## Integration
 
-   Replace:
-   - `your_canvas_api_token` with your actual Canvas API token
-   - `your-institution.instructure.com` with your Canvas institution URL
+This MCP server works with any client that supports the [Model Context Protocol](https://modelcontextprotocol.io/), including Claude Desktop, Claude Code, Cursor, Windsurf, and others.
 
-3. Restart Cursor for the changes to take effect.
-
-### Cursor Time Integration (Optional)
-
-You can also integrate a time server for timezone-related queries by adding a "time" server to your mcp.json:
+The MCP configuration is the same across all clients — only the config file location differs:
 
 ```json
-"time": {
-    "command": "uvx",
-    "args": [
-        "mcp-server-time",
-        "--local-timezone=America/New_York"
-    ]
+{
+    "mcpServers": {
+        "canvas": {
+            "command": "uvx",
+            "args": ["canvas-lms-mcp"],
+            "env": {
+                "CANVAS_API_TOKEN": "your_canvas_api_token",
+                "CANVAS_BASE_URL": "https://your-institution.instructure.com"
+            }
+        }
+    }
 }
 ```
 
-This allows you to use time-related functions with your Canvas data.
+Replace `your_canvas_api_token` with your Canvas API token (found in Canvas → Account → Settings → New Access Token) and `your-institution.instructure.com` with your institution's Canvas URL.
+
+### Claude Desktop
+
+Add to your Claude Desktop config file:
+
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Restart Claude Desktop after saving.
+
+### Claude Code
+
+Add to your project's `.mcp.json` or global `~/.claude/settings.json`:
+
+```json
+{
+    "mcpServers": {
+        "canvas": {
+            "command": "uvx",
+            "args": ["canvas-lms-mcp"],
+            "env": {
+                "CANVAS_API_TOKEN": "your_canvas_api_token",
+                "CANVAS_BASE_URL": "https://your-institution.instructure.com"
+            }
+        }
+    }
+}
+```
+
+### Cursor
+
+Add to `.cursor/mcp.json` in your project directory. Restart Cursor after saving.
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`. Restart Windsurf after saving.
 
 ### Usage Examples
 
-Once connected, you can ask Cursor AI about your Canvas data:
+Once connected, you can ask your AI assistant about your Canvas data:
 
 - "What assignments do I have due next week?"
 - "Show me the syllabus for my Biology course"
-- "List all my upcoming quizzes"
+- "What announcements were posted today?"
+- "What are my grades so far?"
 - "What's on my schedule for tomorrow?"
-
-Example conversation:
-
-```
-YOU: What assignments do I have due soon?
-
-CURSOR: I'll check your upcoming assignments.
-
-Based on your Canvas data, here are your upcoming assignments:
-- "Final Project" for CS101 due on December 10, 2023
-- "Lab Report #5" for BIOL200 due on December 7, 2023
-- "Research Paper" for ENGL301 due on December 15, 2023
-```
+- "Show me the discussion posts for my English class"
 
 ## Development
 
