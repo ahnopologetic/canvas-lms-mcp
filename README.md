@@ -1,6 +1,6 @@
 # Canvas LMS MCP Server
 
-[![smithery badge](https://smithery.ai/badge/@ahnopologetic/canvas-lms-mcp)](https://smithery.ai/server/@ahnopologetic/canvas-lms-mcp)
+[![LightNow capabilities](https://lightnow.ai/badge/io.github.ahnopologetic/canvas-lms-mcp)](https://lightnow.ai/servers/io.github.ahnopologetic/canvas-lms-mcp)
 A minimal Canvas LMS MCP (Machine Conversation Protocol) server for easy access to education data through your Canvas LMS instance. This server provides a bridge between AI systems (like Cursor) and Canvas Learning Management System.
 
 ## Features
